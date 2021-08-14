@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pioneer3dx_trainning</name>
+  <version>0.0.0</version>
+  <description>The pioneer3dx_trainning package for Manuel Andrés Carrera Galafate's TFG</description>
+
+  <maintainer email="alu0101132020@ull.edu.es">Manuel Andrés Carrera Galafate</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">https://github.com/maancga</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

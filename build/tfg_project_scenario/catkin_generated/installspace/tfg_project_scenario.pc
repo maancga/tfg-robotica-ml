@@ -1,0 +1,8 @@
+prefix=/home/manu/catkin_ws/install
+
+Name: tfg_project_scenario
+Description: Description of tfg_project_scenario
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

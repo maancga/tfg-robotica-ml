@@ -206,17 +206,16 @@ class Pioneer3dx(robot_gazebo_env.RobotGazeboEnv):
         cmd_vel_value = Twist()
         cmd_vel_value.linear.x = linear_speed
         cmd_vel_value.angular.z = angular_speed
-        rospy.logdebug("TurtleBot2 Base Twist Cmd>>" + str(cmd_vel_value))
+        rospy.logdebug("Pioneer3dx Base Twist Cmd>>" + str(cmd_vel_value))
         self._check_publishers_connection()
         self._cmd_vel_pub.publish(cmd_vel_value)
-        time.sleep(0.2)
-        #time.sleep(0.02)
-        """
+        #time.sleep(0.2)
+        time.sleep(0.05)
+        
         self.wait_until_twist_achieved(cmd_vel_value,
                                         epsilon,
                                         update_rate,
                                         min_laser_distance)
-        """
                         
     
     def wait_until_twist_achieved(self, cmd_vel_value, epsilon, update_rate, min_laser_distance=-1):
@@ -266,7 +265,7 @@ class Pioneer3dx(robot_gazebo_env.RobotGazeboEnv):
                 break
             
             if crashed_into_something:
-                rospy.logerr("TurtleBot has crashed, stopping movement!")
+                rospy.logerr("Pioneer3dx has crashed, stopping movement!")
                 break
             
             rospy.logwarn("Not there yet, keep waiting...")
@@ -300,6 +299,16 @@ class Pioneer3dx(robot_gazebo_env.RobotGazeboEnv):
                         rospy.logerr("Pioneer3dx HAS CRASHED >>> item=" + str(item)+"< "+str(min_laser_distance))
                         return True
         return False
+
+    def is_in_goal_point(self, goal_point, epsilon):
+        current_x = self.odom.pose.pose.position.x
+        current_y = self.odom.pose.pose.position.y
+        it_is_close_to_x = (goal_point.x <= (current_x + epsilon)) and (goal_point.x >= (current_x - epsilon))
+        it_is_close_to_y = (goal_point.y <= (current_x + epsilon)) and (goal_point.y >= (current_y - epsilon))
+        if (it_is_close_to_x and it_is_close_to_y):
+            return True
+        return False
+
         
 
     def get_odom(self):

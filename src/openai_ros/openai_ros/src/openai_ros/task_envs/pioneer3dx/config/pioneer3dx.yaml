@@ -25,3 +25,9 @@ pioneer3dx: #namespace
     turn_reward: 1 # Points Given to turn as action
     end_episode_points: 200 # Points given when ending an episode
     crash_reward: -100
+    closer_reward: 50
+    arriving_reward: 1500
+
+    # Definition of the objective point.
+    x_goal: 10
+    y_goal: 10

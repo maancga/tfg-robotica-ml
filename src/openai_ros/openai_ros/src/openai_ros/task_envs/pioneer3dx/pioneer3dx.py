@@ -1,3 +1,4 @@
+from numpy.core.numeric import Infinity
 import rospy
 import numpy
 import time
@@ -7,6 +8,7 @@ from openai_ros.robot_envs import pioneer3dx_env
 from gym.envs.registration import register
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Header
+from geometry_msgs.msg import Point
 from openai_ros.task_envs.task_commons import LoadYamlFileParamsTest
 from openai_ros.openai_ros_common import ROSLauncher
 import os
@@ -21,8 +23,8 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
             " DOESNT exist, execute: mkdir -p "+ros_ws_abspath + \
             "/src;cd "+ros_ws_abspath+";catkin_make"
 
-        ROSLauncher(rospackage_name="turtlebot_gazebo",
-                    launch_file_name="start_world_maze_loop_brick.launch",
+        ROSLauncher(rospackage_name="pioneer3dx",
+                    launch_file_name="start_wall_world.launch",
                     ros_ws_abspath=ros_ws_abspath)
 
         # Load Params from the desired Yaml file
@@ -76,7 +78,11 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
         # Laser data
         self.laser_scan_frame = laser_scan.header.frame_id
 
-        
+        self.goal_point = Point()
+        self.goal_point.x = rospy.get_param('/pioneer3dx/x_goal')
+        self.goal_point.y = rospy.get_param('/pioneer3dx/y_goal')
+
+        self.last_distance_registered = Infinity
         
         # Number of laser reading jumped
         self.new_ranges = int(math.ceil(float(len(laser_scan.ranges)) / float(self.n_observations)))
@@ -99,6 +105,8 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
         self.forwards_reward = rospy.get_param("/pioneer3dx/forwards_reward")
         self.turn_reward = rospy.get_param("/pioneer3dx/turn_reward")
         self.end_episode_points = rospy.get_param("/pioneer3dx/end_episode_points")
+        self.crash_reward = rospy.get_param("/pioneer3dx/crash_reward")
+        self.closer_reward = rospy.get_param("/pioneer3dx/closer_reward")
 
         self.cumulated_steps = 0.0
 
@@ -175,6 +183,8 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
         TurtleBot2Env API DOCS
         :return:
         """
+        
+
         rospy.logdebug("Start Get Observation ==>")
         # We get the laser scan data
         laser_scan = self.get_laser_scan()
@@ -208,7 +218,10 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
             else:
                 reward = self.turn_reward
         else:
-            reward = -1*self.end_episode_points
+            reward = -1 * self.end_episode_points
+
+        if self._getting_closer_to(self.goal_point, self.last_distance_registered):
+            reward += self.closer_reward
 
 
         rospy.logdebug("reward=" + str(reward))
@@ -315,4 +328,16 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
         
         
         self.laser_filtered_pub.publish(laser_filtered_object)
+
+
+    def _getting_closer_to(self, goal_point, last_distance_registered):
+        current_x = self.odom.pose.pose.position.x
+        current_y = self.odom.pose.pose.position.y
+
+        current_distance = math.sqrt( ( (current_x - goal_point.x) **2) + (current_y - goal_point.y)**2) 
+        if (current_distance < last_distance_registered):
+            # Collateral effect =(
+            self.last_distance_registered = current_distance
+            return True
+        return False
 

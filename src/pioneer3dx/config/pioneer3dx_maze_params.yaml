@@ -11,4 +11,4 @@ pioneer3dx: #namespace
     epsilon_discount: 0.999
     nepisodes: 500
     nsteps: 10000
-    running_step: 0.06 # Time for each step
+    running_step: 0.03 # Time for each step

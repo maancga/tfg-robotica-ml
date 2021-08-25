@@ -5,10 +5,10 @@ pioneer3dx: #namespace
     pos_step: 0.016     # increment in position for each command
     
     #qlearn parameters
-    alpha: 0.1
-    gamma: 0.7
+    alpha: 0.2
+    gamma: 0.8
     epsilon: 0.9
     epsilon_discount: 0.999
-    nepisodes: 500
-    nsteps: 10000
+    nepisodes: 10000
+    nsteps: 1500
     running_step: 0.03 # Time for each step

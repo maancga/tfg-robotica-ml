@@ -6,18 +6,34 @@ import time
 import qlearn
 from gym import wrappers
 # ROS packages required
-import rospy
+
 import rospkg
+import rospy
 from openai_ros.openai_ros_common import StartOpenAI_ROS_Environment
+import debugpy
+import matplotlib.pyplot as plt
+
+## Debugger
+# 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
+# debugpy.listen(5678)
+# print("Waiting for debugger attach")
+# debugpy.wait_for_client()
+# debugpy.breakpoint()
+# print('break on this line')
+
+# import stable_baselines
+
+# from stable_baselines.common.vec_env import DummyVecEnv
+# from stable_baselines.deepq.policies import MlpPolicy
+# from stable_baselines import DQN
 
 
 if __name__ == '__main__':
-
-    env_dict = gym.envs.registration.registry.env_specs.copy()
-    for env in env_dict:
-        if 'foo' in env:
-            print("Remove {} from registry".format(env))
-            del gym.envs.registration.registry.env_specs[env]
+    # env_dict = gym.envs.registration.registry.env_specs.copy()
+    # for env in env_dict:
+    #     if 'foo' in env:
+    #         print("Remove {} from registry".format(env))
+    #         del gym.envs.registration.registry.env_specs[env]
 
 
     rospy.init_node('pioneer3dx_qlearn',
@@ -33,8 +49,9 @@ if __name__ == '__main__':
 
     # Set the logging system
     rospack = rospkg.RosPack()
-    pkg_path = rospack.get_path('pioneer3dx')
-    outdir = pkg_path + '/training_results'
+    # pkg_path = rospack.get_path('pioneer3dx')
+    # outdir = pkg_path + '/training_results2'
+    outdir = '/tmp/gazebo_gym_experiments'
     env = wrappers.Monitor(env, outdir, force=True)
     rospy.loginfo("Monitor Wrapper started")
 
@@ -60,6 +77,11 @@ if __name__ == '__main__':
     start_time = time.time()
     highest_reward = 0
 
+    all_rewards_mean = []
+    number_of_steps = []
+    interval_summ = 0
+    interval_length = 20
+
     # Starts the main training loop: the one about the episodes to do
     for x in range(nepisodes):
         rospy.logdebug("############### WALL START EPISODE=>" + str(x))
@@ -80,7 +102,7 @@ if __name__ == '__main__':
             rospy.logwarn("############### Start Step=>" + str(i))
             # Pick an action based on the current state
             action = qlearn.chooseAction(state)
-            rospy.logwarn("Next action is:%d", action)
+            # rospy.logwarn("Next action is:%d", action)
             # Execute the action in the environment and get feedback
             observation, reward, done, info = env.step(action)
 
@@ -92,25 +114,37 @@ if __name__ == '__main__':
             nextState = ''.join(map(str, observation))
 
             # Make the algorithm learn based on the results
-            rospy.logwarn("# state we were=>" + str(state))
-            rospy.logwarn("# action that we took=>" + str(action))
-            rospy.logwarn("# reward that action gave=>" + str(reward))
-            rospy.logwarn("# episode cumulated_reward=>" +
-                          str(cumulated_reward))
-            rospy.logwarn(
-                "# State in which we will start next step=>" + str(nextState))
+            # rospy.logwarn("# state we were=>" + str(state))
+            # rospy.logwarn("# action that we took=>" + str(action))
+            # rospy.logwarn("# reward that action gave=>" + str(reward))
+            # rospy.logwarn("# episode cumulated_reward=>" +
+            #               str(cumulated_reward))
+            # rospy.logwarn(
+            #     "# State in which we will start next step=>" + str(nextState))
             qlearn.learn(state, action, reward, nextState)
 
             if not (done):
-                rospy.logwarn("NOT DONE")
+                #rospy.logwarn("NOT DONE")
                 state = nextState
             else:
-                rospy.logwarn("DONE")
+                #rospy.logwarn("DONE")
                 last_time_steps = numpy.append(last_time_steps, [int(i + 1)])
                 break
-            rospy.logwarn("############### END Step=>" + str(i))
+            # rospy.logwarn("############### END Step=>" + str(i))
             #raw_input("Next Step...PRESS KEY")
             # rospy.sleep(2.0)
+        interval_summ += cumulated_reward
+        if x % interval_length == 0:
+            if x == 0:
+                all_rewards_mean.append(interval_summ)
+            else:
+                all_rewards_mean.append(interval_summ / interval_length)
+            interval_summ = 0
+            number_of_steps.append(x)
+            plt.plot(number_of_steps, all_rewards_mean)
+            if x % (interval_length * 5) == 0:
+                plt.show()
+
         m, s = divmod(int(time.time() - start_time), 60)
         h, m = divmod(m, 60)
         rospy.logerr(("EP: " + str(x + 1) + " - [alpha: " + str(round(qlearn.alpha, 2)) + " - gamma: " + str(
@@ -128,4 +162,17 @@ if __name__ == '__main__':
     rospy.loginfo("Best 100 score: {:0.2f}".format(
         reduce(lambda x, y: x + y, l[-100:]) / len(l[-100:])))
 
-    env.close()
+    # model = DQN(MlpPolicy, env, verbose=1)
+    # model.learn(total_timesteps=25000)
+    # model.save("deepq_cartpole")
+
+    # del model # remove to demonstrate saving and loading
+
+    # model = DQN.load("deepq_cartpole")
+
+    # obs = env.reset()
+    # while True:
+    #     action, _states = model.predict(obs)
+    #     obs, rewards, dones, info = env.step(action)
+    #     env.render()
+    #     env.close()

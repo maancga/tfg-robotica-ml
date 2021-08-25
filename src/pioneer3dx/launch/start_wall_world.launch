@@ -1,5 +1,5 @@
 <launch>
-    <arg name="world_file"  default="$(find pioneer3dx)/worlds/custom_world.world"/>
+    <arg name="world_file"  default="$(find pioneer3dx)/worlds/circuit2.world"/>
     <arg name="paused" default="false"/>
     <arg name="use_sim_time" default="true"/>
     <arg name="gui" default="true"/>

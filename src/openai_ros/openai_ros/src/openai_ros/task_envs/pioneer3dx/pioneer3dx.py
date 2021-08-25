@@ -220,8 +220,8 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
         else:
             reward = -1 * self.end_episode_points
 
-        if self._getting_closer_to(self.goal_point, self.last_distance_registered):
-            reward += self.closer_reward
+        # if self._getting_closer_to(self.goal_point, self.last_distance_registered):
+        #     reward += self.closer_reward
 
 
         rospy.logdebug("reward=" + str(reward))
@@ -247,13 +247,13 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
         #mod = len(data.ranges)/new_ranges
         mod = new_ranges
         
-        # We trim right and left edges from the range so the sensor doesn't seem itself
-        edgesOfRange = 41
-        rightCut = 683 - edgesOfRange
-        leftCut = edgesOfRange
+        # We trim right and left edges from the range so the sensor doesn't see itself
+        # edgesOfRange = 41
+        # rightCut = 683 - edgesOfRange
+        # leftCut = edgesOfRange
 
-        data.ranges = data.ranges[:rightCut]
-        data.ranges = data.ranges[leftCut:]
+        # data.ranges = data.ranges[:rightCut]
+        # data.ranges = data.ranges[leftCut:]
         
         max_laser_value = data.range_max
         min_laser_value = data.range_min
@@ -263,7 +263,7 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
     
         for i, item in enumerate(data.ranges):
             if (i%mod==0):
-                if item == float ('Inf') or numpy.isinf(item):
+                if item == float ('Inf') or numpy.isinf(item) or item > 20.0:
                     #discretized_ranges.append(self.max_laser_value)
                     discretized_ranges.append(round(max_laser_value,self.dec_obs))
                 elif numpy.isnan(item):
@@ -273,7 +273,7 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
                     #discretized_ranges.append(int(item))
                     discretized_ranges.append(round(item,self.dec_obs))
                     
-                if (self.min_range > item > 0):
+                if (self.min_range > item > 0 or item > 20.0):
                     rospy.logerr("done Validation >>> item=" + str(item)+"< "+str(self.min_range))
                     self._episode_done = True
                 else:

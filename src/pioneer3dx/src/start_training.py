@@ -142,8 +142,8 @@ if __name__ == '__main__':
             interval_summ = 0
             number_of_steps.append(x)
             plt.plot(number_of_steps, all_rewards_mean)
-            if x % (interval_length * 5) == 0:
-                plt.show()
+            # if x % (interval_length * 5) == 0:
+            #     plt.show()
 
         m, s = divmod(int(time.time() - start_time), 60)
         h, m = divmod(m, 60)
@@ -161,6 +161,8 @@ if __name__ == '__main__':
     rospy.loginfo("Overall score: {:0.2f}".format(last_time_steps.mean()))
     rospy.loginfo("Best 100 score: {:0.2f}".format(
         reduce(lambda x, y: x + y, l[-100:]) / len(l[-100:])))
+    
+    plt.show()
 
     # model = DQN(MlpPolicy, env, verbose=1)
     # model.learn(total_timesteps=25000)

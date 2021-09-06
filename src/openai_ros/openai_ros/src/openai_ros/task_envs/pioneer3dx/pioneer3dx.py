@@ -248,12 +248,12 @@ class Pioneer3dx(pioneer3dx_env.Pioneer3dx):
         mod = new_ranges
         
         # We trim right and left edges from the range so the sensor doesn't see itself
-        # edgesOfRange = 41
-        # rightCut = 683 - edgesOfRange
-        # leftCut = edgesOfRange
+        edgesOfRange = 41
+        rightCut = 683 - edgesOfRange
+        leftCut = edgesOfRange
 
-        # data.ranges = data.ranges[:rightCut]
-        # data.ranges = data.ranges[leftCut:]
+        data.ranges = data.ranges[:rightCut]
+        data.ranges = data.ranges[leftCut:]
         
         max_laser_value = data.range_max
         min_laser_value = data.range_min

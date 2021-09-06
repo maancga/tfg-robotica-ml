@@ -212,10 +212,10 @@ class Pioneer3dx(robot_gazebo_env.RobotGazeboEnv):
         #time.sleep(0.2)
         time.sleep(0.05)
         
-        self.wait_until_twist_achieved(cmd_vel_value,
-                                        epsilon,
-                                        update_rate,
-                                        min_laser_distance)
+        #self.wait_until_twist_achieved(cmd_vel_value,
+        #                                epsilon,
+         #                               update_rate,
+          #                              min_laser_distance)
                         
     
     def wait_until_twist_achieved(self, cmd_vel_value, epsilon, update_rate, min_laser_distance=-1):
